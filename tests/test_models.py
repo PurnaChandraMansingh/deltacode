@@ -196,7 +196,7 @@ class TestModels(FileBasedTesting):
 
         assert len(index.get(None)) == 78
         for each in index.get(None):
-            assert each.sha1 == None
+            assert each.sha1 is None
 
         assert len(index.get('71cb8d2a576df3157730d5353eb81f6d6feb328c')) == 1
         for each in index.get('71cb8d2a576df3157730d5353eb81f6d6feb328c'):
@@ -279,11 +279,11 @@ class TestModels(FileBasedTesting):
 
         scan = models.Scan(test_file)
 
-        assert scan.options.get('--license', None) == None
+        assert scan.options.get('--license', None) is None
         assert scan.options['--license-score'] == 0
         assert scan.options['--format'] == 'json'
-        assert scan.options.get('--package', None) == None
-        assert scan.options.get('--copyright', None) == None
+        assert scan.options.get('--package', None) is None
+        assert scan.options.get('--copyright', None) is None
         assert scan.options['--info'] == True
 
     def test_Scan_valid_scanfile_new_scancode_header_format(self):
@@ -323,7 +323,10 @@ class TestModels(FileBasedTesting):
             invalid_result = models.Scan(invalid_path)
 
         normalized_path = os.path.abspath(invalid_path)
-        assert str(e.value) == 'JSON file: {} is missing the ScanCode version.'.format(normalized_path)
+        assert (
+            str(e.value)
+            == f'JSON file: {normalized_path} is missing the ScanCode version.'
+        )
 
     def test_Scan_old_version(self):
         invalid_path = self.get_test_loc('models/scan/old-version.json')
@@ -332,7 +335,10 @@ class TestModels(FileBasedTesting):
             invalid_result = models.Scan(invalid_path)
 
         normalized_path = os.path.abspath(invalid_path)
-        assert str(e.value) == 'JSON file: {} was created with an old version of ScanCode.'.format(normalized_path)
+        assert (
+            str(e.value)
+            == f'JSON file: {normalized_path} was created with an old version of ScanCode.'
+        )
 
     def test_Scan_info_not_selected(self):
         invalid_path = self.get_test_loc('models/scan/info-not-selected.json')
@@ -341,7 +347,10 @@ class TestModels(FileBasedTesting):
             invalid_result = models.Scan(invalid_path)
 
         normalized_path = os.path.abspath(invalid_path)
-        assert str(e.value) == 'JSON file: {} is missing the ScanCode --info attribute.'.format(normalized_path)
+        assert (
+            str(e.value)
+            == f'JSON file: {normalized_path} is missing the ScanCode --info attribute.'
+        )
 
     def test_Scan_invalid_path(self):
         test_path = '/some/invalid/path.json'
@@ -410,7 +419,7 @@ class TestModels(FileBasedTesting):
         result = models.License().to_dict()
 
         for k,v in result.items():
-            assert v == None
+            assert v is None
 
     def test_License_object_simple(self):
         data = {
@@ -446,8 +455,8 @@ class TestModels(FileBasedTesting):
     def test_License_object_empty(self):
         result = models.License()
 
-        for attr, value in vars(result).items():
-            assert value == None
+        for value in vars(result).values():
+            assert value is None
 
     def test_File_to_dict_simple_w_license(self):
         data = {
@@ -703,7 +712,7 @@ class TestModels(FileBasedTesting):
         result = models.Copyright().to_dict()
 
         for k,v in result.items():
-            assert v == None
+            assert v is None
 
     def test_Copyright_object_simple(self):
         data = {
@@ -732,8 +741,8 @@ class TestModels(FileBasedTesting):
     def test_Copyright_object_empty(self):
         result = models.Copyright()
 
-        for attr, value in vars(result).items():
-            assert value == None
+        for value in vars(result).values():
+            assert value is None
 
     def test_File_to_dict_simple_w_copyright(self):
         data = {

@@ -42,17 +42,18 @@ def write_json(deltacode, outfile, all_delta_types=False):
     all unmodified Delta objects -- identified by a 'score' of 0 -- unless the
     user selects the '-a'/'--all-delta-types' option.
     """
-    results = OrderedDict([
-        ('deltacode_notice', get_notice()),
-        # ('new_scan_options', deltacode.new_scan_options),
-        # ('old_scan_options', deltacode.old_scan_options),
-        ('deltacode_options', deltacode.options),
-        ('deltacode_version', __version__),
-        ('deltacode_errors', collect_errors(deltacode)),
-        ('deltas_count', len([d for d in deltas(deltacode, all_delta_types)])),
-        ('delta_stats', deltacode.stats.to_dict()),
-        ('deltas', deltas(deltacode, all_delta_types))
-    ])
+    results = OrderedDict(
+        [
+            ('deltacode_notice', get_notice()),
+            ('deltacode_options', deltacode.options),
+            ('deltacode_version', __version__),
+            ('deltacode_errors', collect_errors(deltacode)),
+            ('deltas_count', len(list(deltas(deltacode, all_delta_types)))),
+            ('delta_stats', deltacode.stats.to_dict()),
+            ('deltas', deltas(deltacode, all_delta_types)),
+        ]
+    )
+
 
     # TODO: add toggle for pretty printing
     simplejson.dump(results, outfile, iterable_as_array=True, indent=2)
@@ -62,7 +63,7 @@ def write_json(deltacode, outfile, all_delta_types=False):
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
-    click.echo('DeltaCode version ' + __version__)
+    click.echo(f'DeltaCode version {__version__}')
     ctx.exit()
 
 

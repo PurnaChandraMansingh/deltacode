@@ -68,9 +68,7 @@ class Scan(object):
 
         options = scan.get('scancode_options')
         if not options:
-            # Handle new(er) scancode options
-            headers = scan.get('headers')
-            if headers:
+            if headers := scan.get('headers'):
                 options = headers[0].get('options')
 
         return options
@@ -91,25 +89,28 @@ class Scan(object):
 
         version = scan.get('scancode_version')
         if not version:
-            # handle new(er) scancode version location
-            headers = scan.get('headers')
-            if headers:
+            if headers := scan.get('headers'):
                 version = headers[0].get('tool_version')
-        
+
         options = scan.get('scancode_options')
         if not options:
-            headers = scan.get('headers')
-            if headers:
+            if headers := scan.get('headers'):
                 options = headers[0].get('options')
 
         if not version:
-            raise ScanException('JSON file: {} is missing the ScanCode version.'.format(location))
+            raise ScanException(f'JSON file: {location} is missing the ScanCode version.')
 
         if int(version.split('.').pop(0)) < 2:
-            raise ScanException('JSON file: {} was created with an old version of ScanCode.'.format(location))
+            raise ScanException(
+                f'JSON file: {location} was created with an old version of ScanCode.'
+            )
+
 
         if not options.get('--info'):
-            raise ScanException('JSON file: {} is missing the ScanCode --info attribute.'.format(location))
+            raise ScanException(
+                f'JSON file: {location} is missing the ScanCode --info attribute.'
+            )
+
 
         return True
 
@@ -128,8 +129,7 @@ class Scan(object):
 
         files_count = scan.get('files_count')
         if not files_count:
-            headers = scan.get('headers')
-            if headers:
+            if headers := scan.get('headers'):
                 files_count = headers[0].get('extra_data', {}).get('files_count')
 
         return files_count
@@ -162,10 +162,7 @@ class Scan(object):
 
             if index.get(key) is None:
                 index[key] = []
-                index[key].append(f)
-            else:
-                index[key].append(f)
-
+            index[key].append(f)
         return index
 
 
@@ -215,11 +212,7 @@ class File(object):
             ('original_path', self.original_path),
         ])
 
-        if self.licenses:
-            d['licenses'] = [l.to_dict() for l in self.licenses]
-        else:
-            d['licenses'] = []
-
+        d['licenses'] = [l.to_dict() for l in self.licenses] if self.licenses else []
         if self.copyrights:
             d['copyrights'] = [l.to_dict() for l in self.copyrights]
         else:
@@ -238,7 +231,7 @@ class File(object):
         """
         Return string containing a printable representation of the File object.
         """
-        return "%s" % self.__dict__
+        return f"{self.__dict__}"
 
 
 class License(object):
@@ -258,7 +251,7 @@ class License(object):
         Given a License object, return an OrderedDict with the full
         set of fields from the ScanCode 'license' value.
         """
-        d = OrderedDict([
+        return OrderedDict([
             ('key', self.key),
             ('score', self.score),
             ('short_name', self.short_name),
@@ -266,14 +259,12 @@ class License(object):
             ('owner', self.owner)
         ])
 
-        return d
-
     def __repr__(self):
         """
         Return string containing a printable representation of the License
         object.
         """
-        return "%s" % self.__dict__
+        return f"{self.__dict__}"
 
 
 class Copyright(object):
@@ -290,19 +281,17 @@ class Copyright(object):
         Given a Copyright object, return an OrderedDict with the full
         set of fields from the ScanCode 'copyrights' value.
         """
-        d = OrderedDict([
+        return OrderedDict([
             ('statements', self.statements),
             ('holders', self.holders)
         ])
-
-        return d
 
     def __repr__(self):
         """
         Return string containing a printable representation of the Copyright
         object.
         """
-        return "%s" % self.__dict__
+        return f"{self.__dict__}"
 
 
 class ScanException(Exception):

@@ -112,8 +112,8 @@ class TestDeltacode(FileBasedTesting):
 
         result = DeltaCode(test_path_1, test_path_2, options)
 
-        assert result.codebase1 == None
-        assert result.codebase2 == None
+        assert result.codebase1 is None
+        assert result.codebase2 is None
         assert len(result.errors) >= 1
 
     @pytest.mark.xfail(reason='Tests no longer required having invalid paths')
@@ -124,9 +124,9 @@ class TestDeltacode(FileBasedTesting):
 
         result = DeltaCode('', '', options)
 
-        assert result.codebase1 == None
+        assert result.codebase1 is None
 
-        assert result.codebase2 == None
+        assert result.codebase2 is None
 
         assert result.deltas == []
 
@@ -141,8 +141,8 @@ class TestDeltacode(FileBasedTesting):
         result = DeltaCode(None, None, options)
 
         assert result.errors
-        assert result.codebase1 == None
-        assert result.codebase2 == None
+        assert result.codebase1 is None
+        assert result.codebase2 is None
         assert result.deltas == []
 
     @pytest.mark.xfail(reason='Tests no longer required having None paths')
@@ -151,7 +151,6 @@ class TestDeltacode(FileBasedTesting):
             file_obj = VirtualCodebase('fake/path.txt')
         except IOError:
             file_obj = None
-            pass
         first_None = deltacode.Delta(10, None, file_obj)
         second_None = deltacode.Delta(100, file_obj, None)
 
@@ -211,7 +210,7 @@ class TestDeltacode(FileBasedTesting):
 
         assert len([i for i in deltas if i.score == 50]) == 1
         assert len([i for i in deltas if i.score == 40]) == 1
-        assert len([i for i in deltas if i.score == 30]) == 0
+        assert not [i for i in deltas if i.score == 30]
         assert len([i for i in deltas if i.score == 20]) == 1
 
         assert [d.score for d in deltas if get_aligned_path(d, d.new_file.path, new_file=True) == 'some/path/a/a1.py'] == [50]
@@ -676,7 +675,7 @@ class TestDeltacode(FileBasedTesting):
         deltacode_object = DeltaCode(new_scan, old_scan, options)
 
         deltas_object = deltacode_object.deltas
-        assert [d.old_file.sha1 for d in deltas_object if get_aligned_path(d, d.old_file.path, new_file=False) == 'path.txt'] == ['b']  
+        assert [d.old_file.sha1 for d in deltas_object if get_aligned_path(d, d.old_file.path, new_file=False) == 'path.txt'] == ['b']
         assert [d.new_file.sha1 for d in deltas_object if get_aligned_path(d, d.new_file.path, new_file=True) == 'path.txt'] == ['b_modified']
 
         assert [d.score for d in deltas_object if get_aligned_path(d, d.new_file.path, new_file=True) == 'path.txt'] == [25]
@@ -695,9 +694,9 @@ class TestDeltacode(FileBasedTesting):
             ])
         ]
         assert len(deltas_object) == 2
-        assert len([i for i in deltas_object if i.score == 30]) == 0
+        assert not [i for i in deltas_object if i.score == 30]
         assert len([i for i in deltas_object if i.score == 25]) == 1
-        assert len([i for i in deltas_object if i.score == 20]) == 0
+        assert not [i for i in deltas_object if i.score == 20]
 
     def test_score_copyright_info_added(self):
         new_scan = self.get_test_loc('deltacode/score_copyright_info_added_new.json')
@@ -725,9 +724,9 @@ class TestDeltacode(FileBasedTesting):
             ])
         ]
 
-        assert len([i for i in deltas_object if i.score == 35]) == 0
+        assert not [i for i in deltas_object if i.score == 35]
         assert len([i for i in deltas_object if i.score == 30]) == 1
-        assert len([i for i in deltas_object if i.score == 20]) == 0
+        assert not [i for i in deltas_object if i.score == 20]
 
     def test_score_copyright_info_removed(self):
         new_scan = self.get_test_loc('deltacode/score_copyright_info_removed_new.json')
@@ -756,7 +755,7 @@ class TestDeltacode(FileBasedTesting):
         assert [d.to_dict(deltacode_object).get('new').get('copyrights') for d in deltas_object if get_aligned_path(d, d.new_file.path, new_file=True) == 'path.txt'].pop() == []
 
         assert len([i for i in deltas_object if i.score == 30]) == 1
-        assert len([i for i in deltas_object if i.score == 20]) == 0
+        assert not [i for i in deltas_object if i.score == 20]
 
     def test_score_no_copyright_info(self):
         new_scan = self.get_test_loc('deltacode/score_no_copyright_info_new.json')
@@ -769,7 +768,7 @@ class TestDeltacode(FileBasedTesting):
         deltacode_object = DeltaCode(new_scan, old_scan, options)
 
         deltas_object = deltacode_object.deltas
-        
+
         assert [d.old_file.sha1 for d in deltas_object if get_aligned_path(d, d.old_file.path, new_file=False) == 'path.txt'] == ['b']
         assert [d.new_file.sha1 for d in deltas_object if get_aligned_path(d, d.new_file.path, new_file=True) == 'path.txt'] == ['b_modified']
 
@@ -779,7 +778,7 @@ class TestDeltacode(FileBasedTesting):
         assert [d.to_dict(deltacode_object).get('old').get('copyrights') for d in deltas_object if get_aligned_path(d, d.new_file.path, new_file=True) == 'path.txt'].pop() == []
         assert [d.to_dict(deltacode_object).get('new').get('copyrights') for d in deltas_object if get_aligned_path(d, d.new_file.path, new_file=True) == 'path.txt'].pop() == []
 
-        assert len([i for i in deltas_object if i.score == 30]) == 0
+        assert not [i for i in deltas_object if i.score == 30]
         assert len([i for i in deltas_object if i.score == 20]) == 1
 
     def test_score_no_copyright_changes(self):
@@ -813,7 +812,7 @@ class TestDeltacode(FileBasedTesting):
             ])
         ]
 
-        assert len([i for i in deltas_object if i.score == 30]) == 0
+        assert not [i for i in deltas_object if i.score == 30]
         assert len([i for i in deltas_object if i.score == 20]) == 1
 
     def test_score_no_copyright_key(self):
@@ -837,7 +836,7 @@ class TestDeltacode(FileBasedTesting):
         assert [d.to_dict(deltacode_object).get('old').get('copyrights') for d in deltas_object if get_aligned_path(d, d.new_file.path, new_file=True) == 'path.txt'].pop() == []
         assert [d.to_dict(deltacode_object).get('new').get('copyrights') for d in deltas_object if get_aligned_path(d, d.new_file.path, new_file=True) == 'path.txt'].pop() == []
 
-        assert len([i for i in deltas_object if i.score == 30]) == 0
+        assert not [i for i in deltas_object if i.score == 30]
         assert len([i for i in deltas_object if i.score == 20]) == 1
 
     def test_score_copyright_and_license_info_added(self):
@@ -877,9 +876,9 @@ class TestDeltacode(FileBasedTesting):
         ]
 
         assert len([i for i in deltas_object if i.score == 70]) == 1
-        assert len([i for i in deltas_object if i.score == 50]) == 0
-        assert len([i for i in deltas_object if i.score == 30]) == 0
-        assert len([i for i in deltas_object if i.score == 20]) == 0
+        assert not [i for i in deltas_object if i.score == 50]
+        assert not [i for i in deltas_object if i.score == 30]
+        assert not [i for i in deltas_object if i.score == 20]
 
     def test_score_copyright_and_license_info_removed(self):
         new_scan = self.get_test_loc('deltacode/score_copyright_and_license_info_removed_new.json')
@@ -917,10 +916,10 @@ class TestDeltacode(FileBasedTesting):
         ]
         assert [d.to_dict(deltacode_object).get('new').get('licenses') for d in deltas_object if get_aligned_path(d, d.new_file.path, new_file=True) == 'path.txt'].pop() == []
 
-        assert len([i for i in deltas_object if i.score == 55]) == 0
+        assert not [i for i in deltas_object if i.score == 55]
         assert len([i for i in deltas_object if i.score == 45]) == 1
-        assert len([i for i in deltas_object if i.score == 30]) == 0
-        assert len([i for i in deltas_object if i.score == 20]) == 0
+        assert not [i for i in deltas_object if i.score == 30]
+        assert not [i for i in deltas_object if i.score == 20]
 
     def test_score_copyright_info_added_license_info_removed(self):
         new_scan = self.get_test_loc('deltacode/score_copyright_info_added_license_info_removed_new.json')
@@ -933,7 +932,7 @@ class TestDeltacode(FileBasedTesting):
         deltacode_object = DeltaCode(new_scan, old_scan, options)
 
         deltas_object = deltacode_object.deltas
-        
+
 
         assert [d.old_file.sha1 for d in deltas_object if get_aligned_path(d, d.old_file.path, new_file=False) == 'path.txt'] == ['b']
         assert [d.new_file.sha1 for d in deltas_object if get_aligned_path(d, d.new_file.path, new_file=True) == 'path.txt'] == ['b_modified']
@@ -959,11 +958,11 @@ class TestDeltacode(FileBasedTesting):
         ]
         assert [d.to_dict(deltacode_object).get('new').get('licenses') for d in deltas_object if get_aligned_path(d, d.new_file.path, new_file=True) == 'path.txt'].pop() == []
 
-        assert len([i for i in deltas_object if i.score == 55]) == 0
-        assert len([i for i in deltas_object if i.score == 50]) == 0
+        assert not [i for i in deltas_object if i.score == 55]
+        assert not [i for i in deltas_object if i.score == 50]
         assert len([i for i in deltas_object if i.score == 45]) == 1
-        assert len([i for i in deltas_object if i.score == 30]) == 0
-        assert len([i for i in deltas_object if i.score == 20]) == 0
+        assert not [i for i in deltas_object if i.score == 30]
+        assert not [i for i in deltas_object if i.score == 20]
 
     def test_score_license_info_added_copyright_info_removed(self):
         new_scan = self.get_test_loc('deltacode/score_license_info_added_copyright_info_removed_new.json')
@@ -1002,10 +1001,10 @@ class TestDeltacode(FileBasedTesting):
         ]
 
         assert len([i for i in deltas_object if i.score == 70]) == 1
-        assert len([i for i in deltas_object if i.score == 50]) == 0
-        assert len([i for i in deltas_object if i.score == 45]) == 0
-        assert len([i for i in deltas_object if i.score == 30]) == 0
-        assert len([i for i in deltas_object if i.score == 20]) == 0
+        assert not [i for i in deltas_object if i.score == 50]
+        assert not [i for i in deltas_object if i.score == 45]
+        assert not [i for i in deltas_object if i.score == 30]
+        assert not [i for i in deltas_object if i.score == 20]
 
     def test_score_copyright_change_no_license_change(self):
         new_scan = self.get_test_loc('deltacode/score_copyright_change_no_license_change_new.json')
@@ -1056,9 +1055,9 @@ class TestDeltacode(FileBasedTesting):
             ])
         ]
 
-        assert len([i for i in deltas_object if i.score == 30]) == 0
+        assert not [i for i in deltas_object if i.score == 30]
         assert len([i for i in deltas_object if i.score == 25]) == 1
-        assert len([i for i in deltas_object if i.score == 20]) == 0
+        assert not [i for i in deltas_object if i.score == 20]
 
     def test_score_license_change_no_copyright_change(self):
         new_scan = self.get_test_loc('deltacode/score_license_change_no_copyright_change_new.json')
@@ -1110,8 +1109,8 @@ class TestDeltacode(FileBasedTesting):
         ]
 
         assert len([i for i in deltas_object if i.score == 30]) == 1
-        assert len([i for i in deltas_object if i.score == 25]) == 0
-        assert len([i for i in deltas_object if i.score == 20]) == 0
+        assert not [i for i in deltas_object if i.score == 25]
+        assert not [i for i in deltas_object if i.score == 20]
 
     def test_Delta_update_added(self):
         new = models.File({

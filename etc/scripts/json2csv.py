@@ -104,17 +104,23 @@ def flatten_deltas(deltas, headers):
         if old is None:
             old = {}
 
-        yield OrderedDict([
-            ('Status', delta.get('status')),
-            ('Score', delta.get('score')),
-            ('Factors', ' '.join(delta.get('factors'))),
-            ('Path', new.get('original_path', old.get('original_path'))),
-            ('Name', new.get('name', old.get('name'))),
-            ('Type', new.get('type', old.get('type'))),
-            ('Size', new.get('size', old.get('size'))),
-            # TODO: Need better way to ID 'moved' deltas.
-            ('Old Path', old.get('original_path') if 'moved' == delta.get('status') else ''),
-        ])
+        yield OrderedDict(
+            [
+                ('Status', delta.get('status')),
+                ('Score', delta.get('score')),
+                ('Factors', ' '.join(delta.get('factors'))),
+                ('Path', new.get('original_path', old.get('original_path'))),
+                ('Name', new.get('name', old.get('name'))),
+                ('Type', new.get('type', old.get('type'))),
+                ('Size', new.get('size', old.get('size'))),
+                (
+                    'Old Path',
+                    old.get('original_path')
+                    if delta.get('status') == 'moved'
+                    else '',
+                ),
+            ]
+        )
 
 
 @click.command()

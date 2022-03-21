@@ -63,10 +63,11 @@ class DeltaCode(object):
             self.codebase2 = VirtualCodebase(old_path)
         else:
             error_message = (
-                "{} is expected to be a file".format(new_path)
-                if not os.path.isfile(new_path)
-                else "{} is expected to be a file".format(old_path)
+                f"{old_path} is expected to be a file"
+                if os.path.isfile(new_path)
+                else f"{new_path} is expected to be a file"
             )
+
             raise utils.FileError(error_message)
         self.stats = Stat(
             self.codebase1.compute_counts()[0], self.codebase2.compute_counts()[0]
@@ -95,7 +96,7 @@ class DeltaCode(object):
         distance is less than the threshold distance.
         """
         for delta in self.deltas:
-            if delta.new_file == None or delta.old_file == None:
+            if delta.new_file is None or delta.old_file is None:
                 continue
             new_fingerprint = (
                 delta.new_file.fingerprint
@@ -108,7 +109,7 @@ class DeltaCode(object):
                 else None
             )
 
-            if new_fingerprint == None or old_fingerprint == None:
+            if new_fingerprint is None or old_fingerprint is None:
                 continue
             new_fingerprint = utils.bitarray_from_hex(delta.new_file.fingerprint)
             old_fingerprint = utils.bitarray_from_hex(delta.old_file.fingerprint)
@@ -116,9 +117,7 @@ class DeltaCode(object):
             hamming_distance = utils.hamming_distance(new_fingerprint, old_fingerprint)
             if hamming_distance > 0 and hamming_distance <= SIMILARITY_LIMIT:
                 delta.score += hamming_distance
-                delta.factors.append(
-                    "Similar with hamming distance : {}".format(hamming_distance)
-                )
+                delta.factors.append(f"Similar with hamming distance : {hamming_distance}")
 
     def create_deltas(
         self, new_resource, old_resource, new_path, old_path, score, status
@@ -168,8 +167,8 @@ class DeltaCode(object):
                     self.stats.num_unmodified += 1
 
                     continue
-                
-                
+
+
                 # Now when  we do not get old resources with the same name 
                 ADDED = True
                 for old_resource in self.codebase2.walk():
@@ -183,16 +182,16 @@ class DeltaCode(object):
                     # Make the path aligned
                     if (
                         old_resource.is_file
-                        and not old_resource.path in old_resource_considered
+                        and old_resource.path not in old_resource_considered
                     ):
                     # If the old resource is a file and currently unvisited
 
                         if path_new == path_old:
                             # Old and New Resources are having the same path after alignment
                             ADDED = False
+                            # They are having same sha1
+                            old_resource_considered.add(old_resource.path)
                             if new_resource.sha1 == old_resource.sha1:
-                                # They are having same sha1
-                                old_resource_considered.add(old_resource.path)
                                 self.create_deltas(
                                     new_resource,
                                     old_resource,
@@ -202,10 +201,7 @@ class DeltaCode(object):
                                     "unmodified",
                                 )
                                 self.stats.num_unmodified += 1
-                                break
                             else:
-                                # They are having different sha1
-                                old_resource_considered.add(old_resource.path)
                                 self.create_deltas(
                                     new_resource,
                                     old_resource,
@@ -215,7 +211,7 @@ class DeltaCode(object):
                                     "modified",
                                 )
                                 self.stats.num_modified += 1
-                                break
+                            break
                         else:
                             # Their paths are different
                             if new_resource.sha1 == old_resource.sha1:
@@ -266,16 +262,15 @@ class DeltaCode(object):
         has been a license change.
         """
         # TODO: Figure out the best way to handle this.
-        unique_categories = set(
-            [
-                "Commercial",
-                "Copyleft",
-                "Copyleft Limited",
-                "Free Restricted",
-                "Patent License",
-                "Proprietary Free",
-            ]
-        )
+        unique_categories = {
+            "Commercial",
+            "Copyleft",
+            "Copyleft Limited",
+            "Free Restricted",
+            "Patent License",
+            "Proprietary Free",
+        }
+
 
         for delta in self.deltas:
             utils.update_from_license_info(delta, unique_categories)
@@ -310,8 +305,8 @@ class Delta(object):
     OLD_CODEBASE_OFFSET = 0
 
     def __init__(self, score=0, new_file=None, old_file=None):
-        self.new_file = new_file if new_file else None
-        self.old_file = old_file if old_file else None
+        self.new_file = new_file or None
+        self.old_file = old_file or None
         self.factors = []
         self.score = score
         self.status = ""
@@ -366,18 +361,12 @@ class Delta(object):
         except AttributeError:
             return []
 
-        all_copyrights = []
-        for copyright in copyrights:
-            all_copyrights.append(
-                OrderedDict(
+        return [OrderedDict(
                     [
                         ("statements", copyright.get("statements", None)),
                         ("holders", copyright.get("holders", None)),
                     ]
-                )
-            )
-
-        return all_copyrights
+                ) for copyright in copyrights]
 
     def licenses_to_dict(self, file):
         """
@@ -386,9 +375,7 @@ class Delta(object):
         """
         licenses = []
         try:
-            for license in file.licenses:
-                licenses.append(
-                    OrderedDict(
+            licenses.extend(OrderedDict(
                         [
                             ("key", license.get("key", None)),
                             ("score", license.get("score", None)),
@@ -396,8 +383,7 @@ class Delta(object):
                             ("category", license.get("category", None)),
                             ("owner", license.get("owner", None)),
                         ]
-                    )
-                )
+                    ) for license in file.licenses)
             return licenses
         except:
             return []
@@ -431,20 +417,12 @@ class Delta(object):
         'path' attributes of the object.
         """
         if (
-            not deltacode.options.get("--all-delta-types", "") == True
+            deltacode.options.get("--all-delta-types", "") != True
             and self.status == "unmodified"
         ):
             return
-        if self.new_file:
-            new_file = self.new_file.to_dict()
-        else:
-            new_file = None
-
-        if self.old_file:
-            old_file = self.old_file.to_dict()
-        else:
-            old_file = None
-
+        new_file = self.new_file.to_dict() if self.new_file else None
+        old_file = self.old_file.to_dict() if self.old_file else None
         return OrderedDict(
             [
                 ("status", self.status),

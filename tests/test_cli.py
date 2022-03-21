@@ -344,7 +344,7 @@ class TestCLI(FileBasedTesting):
             d for d in json_result.get("deltas") if d.get("status") == "unmodified"
         ]
 
-        assert len(unmodified_result) == 0
+        assert not unmodified_result
 
     # TODO: need to fix in scancode
     def test_no_output_option_selected_all_selected(self):

@@ -59,16 +59,15 @@ def update_added_from_license_info(delta, unique_categories):
         delta.new_file.licenses if hasattr(delta.new_file, "licenses") else []
     )
 
-    new_categories = set(license["category"] for license in new_licenses)
+    new_categories = {license["category"] for license in new_licenses}
     if hasattr(delta.new_file, "licenses"):
         delta.update(20, "license info added")
         for category in new_categories:
             # no license ==> 'Copyleft Limited'or higher
             if category in unique_categories:
-                delta.update(20, category.lower() + " added")
-            # no license ==> 'Permissive' or 'Public Domain'
+                delta.update(20, f'{category.lower()} added')
             else:
-                delta.update(0, category.lower() + " added")
+                delta.update(0, f'{category.lower()} added')
         return
 
 
@@ -90,8 +89,8 @@ def update_modified_from_license_info(delta, unique_categories):
         delta.update(15, "license info removed")
         return
 
-    new_categories = set(license.get("category", "") for license in new_licenses)
-    old_categories = set(license.get("category", "") for license in old_licenses)
+    new_categories = {license.get("category", "") for license in new_licenses}
+    old_categories = {license.get("category", "") for license in old_licenses}
 
     if new_licenses and not old_licenses:
         delta.update(20, "license info added")
@@ -99,14 +98,13 @@ def update_modified_from_license_info(delta, unique_categories):
         for category in new_categories:
             # no license ==> 'Copyleft Limited'or higher
             if category in unique_categories:
-                delta.update(20, category.lower() + " added")
-            # no license ==> 'Permissive' or 'Public Domain'
+                delta.update(20, f'{category.lower()} added')
             else:
-                delta.update(0, category.lower() + " added")
+                delta.update(0, f'{category.lower()} added')
         return
 
-    new_keys = set(license.get("key", "") for license in new_licenses)
-    old_keys = set(license.get("key", "") for license in old_licenses)
+    new_keys = {license.get("key", "") for license in new_licenses}
+    old_keys = {license.get("key", "") for license in old_licenses}
 
     if new_keys != old_keys:
 
@@ -115,13 +113,11 @@ def update_modified_from_license_info(delta, unique_categories):
             unique_categories_in_old_file = len(old_categories & unique_categories)
             # 'Permissive' or 'Public Domain' ==> 'Copyleft Limited' or higher
             if unique_categories_in_old_file == 0 and category in unique_categories:
-                delta.update(20, category.lower() + " added")
-            # at least 1 category in the old file was 'Copyleft Limited' or higher ==> 'Copyleft Limited' or higher
+                delta.update(20, f'{category.lower()} added')
             elif unique_categories_in_old_file != 0 and category in unique_categories:
-                delta.update(10, category.lower() + " added")
-            # 'Permissive' or 'Public Domain' ==> 'Permissive' or 'Public Domain' if not in old_categories
-            elif category not in unique_categories:
-                delta.update(0, category.lower() + " added")
+                delta.update(10, f'{category.lower()} added')
+            else:
+                delta.update(0, f'{category.lower()} added')
 
 
 def update_from_copyright_info(delta):
@@ -170,16 +166,18 @@ def update_modified_from_copyright_info(delta):
         delta.update(10, "copyright info removed")
         return
 
-    new_holders = set(
+    new_holders = {
         holder
         for copyright in new_copyrights
         for holder in copyright.get("holders", [])
-    )
-    old_holders = set(
+    }
+
+    old_holders = {
         holder
         for copyright in old_copyrights
         for holder in copyright.get("holders", [])
-    )
+    }
+
     if new_holders != old_holders:
         delta.update(5, "copyright change")
 
@@ -200,9 +198,7 @@ def deltas(deltacode, all_delta_types=False):
     option.
     """
     for delta in deltacode.deltas:
-        if all_delta_types is True:
-            yield delta.to_dict(deltacode)
-        elif not delta.status == "unmodified":
+        if all_delta_types is True or delta.status != "unmodified":
             yield delta.to_dict(deltacode)
 
 
@@ -231,10 +227,7 @@ class FileError(Exception):
     unsupported errors in the json file
     """
     def __init__(self, *args):
-        if args:
-            self.message = args[0]
-        else:
-            self.message = None
+        self.message = args[0] if args else None
 
     def __str__(self):
         return self.message
@@ -292,9 +285,7 @@ def get_notice():
     [notice_text, acknowledgment_text] = notice_text.split(delimiter, 1)
     acknowledgment_text = delimiter + acknowledgment_text
 
-    notice = acknowledgment_text.strip().replace("  ", "")
-
-    return notice
+    return acknowledgment_text.strip().replace("  ", "")
 
 
 def hamming_distance(fingerprint1, fingerprint2):
@@ -304,9 +295,7 @@ def hamming_distance(fingerprint1, fingerprint2):
     Files with fingerprints whose hamming distance are less tends to be more similar.
     """
     distance = bitdiff(fingerprint1, fingerprint2)
-    result = int(distance)
-
-    return result
+    return int(distance)
 
 
 def bitarray_from_hex(fingerprint_hex):
@@ -314,9 +303,7 @@ def bitarray_from_hex(fingerprint_hex):
     Return bitarray from a hex string.
     """
     bytes = binascii.unhexlify(fingerprint_hex)
-    result = bitarray_from_bytes(bytes)
-
-    return result
+    return bitarray_from_bytes(bytes)
 
 
 def bitarray_from_bytes(b):

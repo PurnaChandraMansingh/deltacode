@@ -19,11 +19,7 @@ def unsupported(platform):
     sys.exit(1)
 
 
-if sys.maxsize > 2 ** 32:
-    arch = '64'
-else:
-    arch = '32'
-
+arch = '64' if sys.maxsize > 2 ** 32 else '32'
 sys_platform = str(sys.platform).lower()
 if sys_platform.startswith('linux'):
     os = 'linux'

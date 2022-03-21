@@ -43,14 +43,14 @@ from deltacode import models
 from deltacode import DeltaCode
 
 
-unique_categories = set([
+unique_categories = {
     'Commercial',
     'Copyleft',
     'Copyleft Limited',
     'Free Restricted',
     'Patent License',
-    'Proprietary Free'
-])
+    'Proprietary Free',
+}
 
 
 class TestUtils(FileBasedTesting):
